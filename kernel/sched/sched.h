@@ -93,6 +93,10 @@
 
 #include "cpupri.h"
 #include "cpudeadline.h"
+#if IS_ENABLED(CONFIG_OPLUS_FEATURE_VT_CAP)
+#include <linux/sched/cputime.h>
+#endif
+
 
 #ifdef CONFIG_SCHED_DEBUG
 # define SCHED_WARN_ON(x)      WARN_ONCE(x, #x)
@@ -185,6 +189,7 @@ static inline int idle_policy(int policy)
 {
 	return policy == SCHED_IDLE;
 }
+
 static inline int fair_policy(int policy)
 {
 	return policy == SCHED_NORMAL || policy == SCHED_BATCH;
@@ -234,6 +239,7 @@ static inline void update_avg(u64 *avg, u64 sample)
  */
 #define shr_bound(val, shift)							\
 	(val >> min_t(typeof(shift), shift, BITS_PER_TYPE(typeof(val)) - 1))
+
 
 /*
  * !! For sched_setattr_nocheck() (kernel) only !!
@@ -426,6 +432,7 @@ struct task_group {
 #endif
 
 	ANDROID_KABI_RESERVE(1);
+
 	ANDROID_KABI_RESERVE(2);
 	ANDROID_KABI_RESERVE(3);
 	ANDROID_KABI_RESERVE(4);
@@ -506,6 +513,7 @@ extern void set_task_rq_fair(struct sched_entity *se,
 static inline void set_task_rq_fair(struct sched_entity *se,
 			     struct cfs_rq *prev, struct cfs_rq *next) { }
 #endif /* CONFIG_SMP */
+#else /* CONFIG_FAIR_GROUP_SCHED */
 #endif /* CONFIG_FAIR_GROUP_SCHED */
 
 #else /* CONFIG_CGROUP_SCHED */
@@ -659,6 +667,7 @@ struct cfs_rq {
 #endif /* CONFIG_CFS_BANDWIDTH */
 #endif /* CONFIG_FAIR_GROUP_SCHED */
 };
+
 
 static inline int rt_bandwidth_enabled(void)
 {
@@ -3278,4 +3287,6 @@ static inline void update_current_exec_runtime(struct task_struct *curr,
 	cgroup_account_cputime(curr, delta_exec);
 }
 
+
+extern bool cpu_busy_with_softirqs(int cpu);
 #endif /* _KERNEL_SCHED_SCHED_H */
